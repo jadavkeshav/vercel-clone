@@ -44,6 +44,8 @@ async function init() {
                 continue;
             }
 
+            console.log("Uploading file: ", filePath);
+
             const command = new PutObjectCommand({
                 Bucket: '',
                 Key: `__output/${PROJECT_ID}/${filePath}`,
@@ -52,6 +54,8 @@ async function init() {
             });
 
             await s3.send(command);
+            console.log("uploaded file: ", filePath);
+
         }
         console.log("Done....");
     });
