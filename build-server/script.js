@@ -31,7 +31,7 @@ async function init() {
         console.error("Error:", err.toString());
     });
 
-    p.on("close", () => {
+    p.on("close", async () => {
         console.log(`Build Complete.`);
 
         //read the dist floder after the build is complete
@@ -47,12 +47,11 @@ async function init() {
             console.log("Uploading file: ", filePath);
 
             const command = new PutObjectCommand({
-                Bucket: '',
+                Bucket: 'vc-build-server',
                 Key: `__output/${PROJECT_ID}/${filePath}`,
                 Body: fs.createReadStream(filePath),
                 ContentType: mime.lookup(filePath),
             });
-
             await s3.send(command);
             console.log("uploaded file: ", filePath);
 
