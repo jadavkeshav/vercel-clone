@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const mime = require("mime-types");
+require('dotenv').config();
 
 //create an S3 client
 const s3 = new S3Client({
@@ -19,8 +20,10 @@ async function init() {
     console.log("Executing Script.js");
 
     const outDirPath = path.join(__dirname, "output");
+    console.log("Output Directory Path: ", outDirPath);
 
-    const p = exec(`cd ${outDirPath} && npm install  && npm run build`);
+    //setting the output directory as dist
+    const p = exec(`cd ${outDirPath} && npm install &&  npm run build`);
 
     //when the command is running we can see the output in the console
     p.stdout.on("data", (data) => {
@@ -39,7 +42,8 @@ async function init() {
         const distFolderContents = fs.readdirSync(distFolderPath, { recursive: true });
 
         //upload each file in the dist folder to S3
-        for (const filePath of distFolderContents) {
+        for (const file of distFolderContents) {
+            const filePath = path.join(distFolderPath, file);
             if (fs.lstatSync(filePath).isDirectory()) {
                 continue;
             }
@@ -48,7 +52,7 @@ async function init() {
 
             const command = new PutObjectCommand({
                 Bucket: 'vc-build-server',
-                Key: `__output/${PROJECT_ID}/${filePath}`,
+                Key: `__output/${PROJECT_ID}/${file}`,
                 Body: fs.createReadStream(filePath),
                 ContentType: mime.lookup(filePath),
             });

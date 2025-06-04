@@ -15,6 +15,7 @@ COPY script.js script.js
 COPY package*.json .
 
 RUN npm install
+COPY .env .env
 
 RUN chmod +x main.sh
 RUN chmod +x script.js
