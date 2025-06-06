@@ -93,7 +93,6 @@ app.post("/projects", async (req, res) => {
         data: {
             projectSlug,
             url: `http://${projectSlug}.localhost:8000`,
-            lambdaResponse: response.data
         }
     });
 });
