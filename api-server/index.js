@@ -84,7 +84,7 @@ app.post("/projects", async (req, res) => {
     const projectSlug = generateSlug();
     console.log("Received gitURL:", gitURL);
     const response = await axios.post(
-        "https://6dfkvjx6z6.execute-api.us-east-1.amazonaws.com/default/RunECSTaskFunction", // <-- Replace with actual API
+        process.env.AWS_API_GATEWAY_URL,
         { gitURL, projectSlug }
     );
     console.log("hit the API", response.data);
