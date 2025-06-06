@@ -4,6 +4,14 @@ const { ECSClient, RunTaskCommand } = require("@aws-sdk/client-ecs");
 const Redis = require("ioredis");
 const { Server } = require("socket.io");
 const { default: axios } = require('axios');
+const connectDB = require('./db/connectDB');
+const authRoutes = require('./routes/auth.route');
+const nodemailer = require('nodemailer');
+const ejs = require('ejs');
+const path = require('path');
+const bodyParser = require('body-parser');
+
+const { sendmail } = require('./utils/sendMail');
 require('dotenv').config();
 
 const subscriber = new Redis(process.env.REDIS_URL);
@@ -20,7 +28,7 @@ io.on("connection", (socket) => {
         socket.join(channel);
         socket.emit("message", `Subscribed to channel: ${channel}`);
     });
-
+    
 });
 
 const ecs = new ECSClient({
@@ -40,6 +48,14 @@ const app = express();
 const PORT = 9000;
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+
+app.use("/api/auth", authRoutes)
 
 // app.post("/projects", async (req, res) => {
 //     const { gitURL } = req.body;
@@ -75,29 +91,34 @@ app.use(express.json());
 //     console.log("ECS Task Started for project:", projectSlug);  
 //exit the task
 //     process.exit(0);
-    
+
 //     return res.json({ status: 'queued', data: { projectSlug, url: `http://${projectSlug}.localhost:8000` } });
 // })
 
 app.post("/projects", async (req, res) => {
-    const { gitURL } = req.body;
-    const projectSlug = generateSlug();
-    console.log("Received gitURL:", gitURL);
-    const response = await axios.post(
-        process.env.AWS_API_GATEWAY_URL,
-        { gitURL, projectSlug }
-    );
-    console.log("hit the API", response.data);
-    return res.json({
-        status: 'queued',
-        data: {
-            projectSlug,
-            url: `http://${projectSlug}.localhost:8000`,
-        }
-    });
+    try {
+        const { gitURL } = req.body;
+        const projectSlug = generateSlug();
+        console.log("Received gitURL:", gitURL);
+        const response = await axios.post(
+            process.env.AWS_API_GATEWAY_URL,
+            { gitURL, projectSlug }
+        );
+        console.log("hit the API", response.data);
+        return res.json({
+            status: 'queued',
+            data: {
+                projectSlug,
+                url: `http://${projectSlug}.localhost:8000`,
+            }
+        });
+    } catch (error) {
+        console.error("Error in /projects endpoint:", error);
+        return res.status(500).json({ status: 'error', message: 'Internal Server Error', error: error.message });
+    }
 });
 
-async function initRedisSubscribe(){
+async function initRedisSubscribe() {
     console.log("Subscribed To Logs Channel");
     subscriber.psubscribe("logs:*");
     subscriber.on("pmessage", (pattern, channel, message) => {
@@ -108,4 +129,8 @@ async function initRedisSubscribe(){
 
 initRedisSubscribe();
 
-app.listen(PORT, () => console.log(`API SERVER Running On PORT : ${PORT}`));
+app.listen(PORT, () => {
+    connectDB();
+  
+    console.log(`API SERVER Running On PORT : ${PORT}`);
+});

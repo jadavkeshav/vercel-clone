@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - VC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            color: #ffffff;
+            background-color: #000000;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #111111;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid #333333;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 20px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #a1a1aa;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .verification-code {
+            background-color: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 32px 0;
+        }
+
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3b82f6;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            margin: 24px 0;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover {
+            background-color: #2563eb;
+        }
+
+        .button-container {
+            text-align: center;
+        }
+
+        .footer {
+            background-color: #0a0a0a;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #333333;
+        }
+
+        .footer-text {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .footer-links {
+            margin-top: 20px;
+        }
+
+        .footer-link {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+        }
+
+        .security-note {
+            background-color: #1f2937;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            margin: 24px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .security-note p {
+            color: #d1d5db;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .header,
+            .content,
+            .footer {
+                padding: 30px 20px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .code {
+                font-size: 28px;
+                letter-spacing: 2px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">VC</div>
+            <h1 style="color: #ffffff; font-size: 20px; margin: 0;">Verify Your Email</h1>
+        </div>
+
+        <div class="content">
+            <h2 class="title">Welcome to VC!</h2>
+            <p class="subtitle">Please verify your email address to complete your account setup.</p>
+
+            <p style="color: #d1d5db; margin-bottom: 24px;">
+                Hi <%= name %>,<br><br>
+                    Thank you for signing up with VC! To get started, please verify your email address by using the
+                    verification code below:
+            </p>
+
+            <div class="verification-code">
+                <div class="code">
+                    <%= verificationCode %>
+                </div>
+                <p style="color: #9ca3af; font-size: 14px; margin-top: 12px;">
+                    This code expires in 10 minutes
+                </p>
+            </div>
+
+
+            <div class="security-note">
+                <p><strong>Security Note:</strong> If you didn't create an account with VC, please ignore this email.
+                    Your email address will not be added to our system.</p>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">
+                This email was sent to <%= email %>. If you have any questions, please contact our support team.
+            </p>
+            <div class="footer-links">
+                <a href="#" class="footer-link">Help Center</a>
+                <a href="#" class="footer-link">Contact Support</a>
+                <a href="#" class="footer-link">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
