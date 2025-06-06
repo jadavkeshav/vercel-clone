@@ -74,6 +74,8 @@ async function init() {
         }
         console.log("Done....");
         publishLogs("Done...");
+
+        process.exit(0);
     });
 
 }
