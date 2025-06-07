@@ -1,195 +1,111 @@
-import type React from "react"
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { io, Socket } from "socket.io-client";
 
-import { useState, useEffect, useRef } from "react"
-
-interface BuildLogsViewProps {
-  projectId: number
-  onComplete: (projectId: number, success: boolean) => void
-  onBack: () => void
+interface LogMessage {
+	id: number;
+	text: string;
 }
 
-const BuildLogsView: React.FC<BuildLogsViewProps> = ({ projectId, onComplete, onBack }) => {
-  const [logs, setLogs] = useState<Array<{ id: number; message: string; timestamp: string }>>([])
-  const [isBuilding, setIsBuilding] = useState(true)
-  const [buildSuccess, setBuildSuccess] = useState(false)
-  const logsEndRef = useRef<HTMLDivElement>(null)
+const SOCKET_URL = "http://localhost:9001";
 
-  const buildLogs = [
-    "🔄 Cloning repository...",
-    "✅ Repository cloned successfully",
-    "📦 Installing dependencies...",
-    "⬇️  npm install",
-    "📦 Installing react@18.2.0",
-    "📦 Installing react-dom@18.2.0",
-    "📦 Installing next@14.0.0",
-    "✅ Dependencies installed",
-    "🔨 Building application...",
-    "⚡ Creating optimized production build",
-    "📊 Analyzing bundle size...",
-    "✅ Build completed successfully",
-    "🚀 Deploying to production...",
-    "🌐 Configuring CDN...",
-    "✅ Deployment successful!",
-    "🎉 Your application is now live!",
-  ]
+const shimmerStyle: React.CSSProperties = {
+	height: 20,
+	width: "100%",
+	background: "linear-gradient(90deg, #222 25%, #444 50%, #222 75%)",
+	backgroundSize: "200% 100%",
+	animation: "shimmer 1.5s infinite",
+	marginTop: 8,
+};
 
-  useEffect(() => {
-    let currentIndex = 0
-    const interval = setInterval(() => {
-      if (currentIndex < buildLogs.length) {
-        setLogs((prev) => [
-          ...prev,
-          {
-            id: currentIndex,
-            message: buildLogs[currentIndex],
-            timestamp: new Date().toLocaleTimeString(),
-          },
-        ])
-        currentIndex++
-      } else {
-        setIsBuilding(false)
-        setBuildSuccess(true)
-        clearInterval(interval)
-      }
-    }, 800)
+const BuildLogsView: React.FC = () => {
+	const { slug } = useParams<{ slug: string }>();
+	const navigate = useNavigate();
 
-    return () => clearInterval(interval)
-  }, [])
+	const [logs, setLogs] = useState<LogMessage[]>([]);
+	const [isBuilding, setIsBuilding] = useState(true);
 
-  useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [logs])
+	const logsEndRef = useRef<HTMLDivElement>(null);
+	const messageId = useRef<number>(0);
+	const socketRef = useRef<Socket | null>(null);
 
-  const handleComplete = () => {
-    onComplete(projectId, buildSuccess)
-  }
+	useEffect(() => {
+		const socket = io(SOCKET_URL, { transports: ["websocket"] });
+		socketRef.current = socket;
 
-  return (
-    <div className="min-h-screen bg-black">
-      {/* Header */}
-      <header className="border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 space-x-4">
-            <button onClick={onBack} className="text-gray-400 hover:text-white flex items-center space-x-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span>Back to Dashboard</span>
-            </button>
+		socket.on("connect", () => {
+			console.log("[✅] Connected to server via socket:", socket.id);
+			socket.emit("subscribe", `logs:${slug}`);
+		});
 
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-black font-bold text-sm">VC</span>
-              </div>
-              <div>
-                <h1 className="text-white font-medium">Deployment Logs</h1>
-                <p className="text-gray-400 text-sm">Project #{projectId}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+		socket.on("message", (data: string) => {
+      let logMessage = data;
+			try {
+				const parsed = JSON.parse(data);
+				if (parsed.log) {
+					logMessage = parsed.log;
+				}
+			} catch(err) {
+				console.log("Parse Error : ", err);
+			}
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
-          {/* Build Status */}
-          <div className="px-6 py-4 border-b border-gray-800">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {isBuilding ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-yellow-400 font-medium">Building...</span>
-                  </>
-                ) : buildSuccess ? (
-                  <>
-                    <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-green-400 font-medium">Build Successful</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-red-400 font-medium">Build Failed</span>
-                  </>
-                )}
-              </div>
 
-              {!isBuilding && buildSuccess && (
-                <button
-                  onClick={handleComplete}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                >
-                  Visit Site
-                </button>
-              )}
-            </div>
-          </div>
+			if (logMessage.trim().toLowerCase() === "done...") {
+				setIsBuilding(false);
+				setTimeout(() => {
+					navigate("/project");
+				}, 1500);
+			} else {
+				setLogs((prev) => [...prev, { id: messageId.current++, text: data }]);
+			}
+		});
 
-          {/* Logs Container */}
-          <div className="h-96 overflow-y-auto bg-black p-4 font-mono text-sm">
-            {logs.map((log) => (
-              <div key={log.id} className="flex items-start space-x-3 mb-2">
-                <span className="text-gray-500 text-xs mt-0.5 w-20 flex-shrink-0">{log.timestamp}</span>
-                <span className="text-gray-300">{log.message}</span>
-              </div>
-            ))}
+		socket.on("disconnect", () => {
+			console.log("[❌] Disconnected from server");
+			navigate("/");
+		});
 
-            {isBuilding && (
-              <div className="flex items-center space-x-2 text-gray-400">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                <span>Processing...</span>
-              </div>
-            )}
+		return () => {
+			socket.disconnect();
+		};
+	}, [slug, navigate]);
 
-            <div ref={logsEndRef} />
-          </div>
-        </div>
+	useEffect(() => {
+		logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	}, [logs]);
 
-        {!isBuilding && buildSuccess && (
-          <div className="mt-6 bg-green-900 border border-green-700 rounded-lg p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <h3 className="text-green-400 font-medium text-lg">Deployment Successful!</h3>
-            </div>
-            <p className="text-green-300 mb-4">Your application has been successfully deployed and is now live.</p>
-            <div className="flex space-x-3">
-              <button
-                onClick={handleComplete}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-              >
-                Visit Site
-              </button>
-              <button
-                onClick={onBack}
-                className="border border-green-600 text-green-400 px-4 py-2 rounded-md hover:bg-green-600 hover:text-white transition-colors"
-              >
-                Back to Dashboard
-              </button>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
-  )
-}
+	return (
+		<>
+			<style>
+				{`
+          @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+          }
+        `}
+			</style>
 
-export default BuildLogsView
+			<div className="flex flex-col h-screen p-4 bg-gray-900">
+				<div className="flex justify-between items-center mb-3">
+					<h2 className="text-white text-2xl font-semibold">
+						🛠️ Build Logs for <span className="text-yellow-400">{slug}</span>
+					</h2>
+					<button disabled className={`px-4 py-2 rounded ${isBuilding ? "bg-blue-600" : "bg-green-600"} text-white cursor-default select-none`}>
+						{isBuilding ? "Building..." : "Finished"}
+					</button>
+				</div>
+
+				<div className="flex-1 overflow-y-auto bg-black border border-gray-700 rounded-md p-4 font-mono text-green-400 whitespace-pre-wrap" style={{ minHeight: 300 }}>
+					{logs.map((log) => (
+						<div key={log.id}>{log.text}</div>
+					))}
+
+					{isBuilding && <div style={shimmerStyle} />}
+					<div ref={logsEndRef} />
+				</div>
+			</div>
+		</>
+	);
+};
+
+export default BuildLogsView;

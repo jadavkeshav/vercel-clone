@@ -1,13 +1,12 @@
 import type React from "react"
 
-import type { Project } from "../App"
-
 interface ProjectCardProps {
   project: Project
   onClick: () => void
+  url: string
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, url }) => {
   const getStatusColor = (status: Project["status"]) => {
     switch (status) {
       case "deployed":
@@ -21,34 +20,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
     }
   }
 
-  const getStatusIcon = (status: Project["status"]) => {
-    switch (status) {
-      case "deployed":
-        return (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        )
-      case "building":
-        return <div className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
-      case "failed":
-        return (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        )
-      default:
-        return null
-    }
-  }
+ 
 
   return (
     <div
@@ -86,33 +58,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
       </div>
 
       <div className="flex items-center space-x-2 mb-4">
-        <span className={`flex items-center space-x-1 ${getStatusColor(project.status)}`}>
-          {getStatusIcon(project.status)}
-          <span className="text-sm font-medium capitalize">{project.status}</span>
-        </span>
-        <span className="text-gray-500">•</span>
-        <span className="text-gray-400 text-sm">{project.lastDeployed}</span>
+        <span className="text-gray-400 text-sm">{project.updatedAt}</span>
       </div>
 
-      {/* Build Logs Preview for Building Projects */}
-      {project.status === "building" && project.buildLogs && project.buildLogs.length > 0 && (
-        <div className="mb-4 bg-black rounded-md p-3 border border-gray-700">
-          <div className="text-xs text-gray-400 mb-2">Build Logs:</div>
-          <div className="space-y-1 max-h-20 overflow-y-auto">
-            {project.buildLogs.slice(-3).map((log, index) => (
-              <div key={index} className="text-xs text-gray-300 font-mono">
-                {log}
-              </div>
-            ))}
-          </div>
-          {project.buildLogs.length > 3 && (
-            <div className="text-xs text-gray-500 mt-1">... and {project.buildLogs.length - 3} more lines</div>
-          )}
-        </div>
-      )}
-
       <div className="flex items-center justify-between">
-        {project.url ? (
+        {url ? (
           <a
             href={project.url}
             target="_blank"

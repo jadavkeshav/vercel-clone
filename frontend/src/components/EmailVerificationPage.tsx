@@ -103,7 +103,7 @@ const EmailVerificationPage = () => {
       await resendVerificationCode(user.email);
       toast.success("Verification code resent successfully");
       setError("");
-      setResendCooldown(30); // 30 seconds cooldown
+      setResendCooldown(30); 
     } catch (err) {
       setError("Failed to resend verification code.");
     }
