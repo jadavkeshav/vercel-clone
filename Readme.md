@@ -1,6 +1,6 @@
-# Vercel Clone 2.0
+# Vercel Clone
 
-A full-stack platform inspired by [Vercel](https://vercel.com), enabling users to deploy, manage, and preview web projects with instant builds, custom domains, and real-time logs.
+A full-stack platform inspired by [Vercel](https://vercel.com), enabling users to deploy, manage, and preview web projects with instant builds, and real-time logs.
 
 ---
 
@@ -11,7 +11,6 @@ A full-stack platform inspired by [Vercel](https://vercel.com), enabling users t
 - **Automated Builds**: Projects are built in isolated containers using AWS ECS.
 - **Live Build Logs**: Real-time build logs via WebSockets (Socket.IO + Redis).
 - **Static Hosting**: Deployments are uploaded to AWS S3 and served via a reverse proxy.
-- **Custom Domains**: Assign custom or generated subdomains to projects.
 - **Modern Frontend**: Built with React, TypeScript, Vite, and Tailwind CSS.
 
 ---
