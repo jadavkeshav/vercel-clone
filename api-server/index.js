@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const { default: axios } = require('axios');
 const connectDB = require('./db/connectDB');
 const authRoutes = require('./routes/auth.route');
+const projectRoutes = require('./routes/project.route');
 const nodemailer = require('nodemailer');
 const ejs = require('ejs');
 const path = require('path');
@@ -63,6 +64,7 @@ app.set('view engine', 'ejs');
 
 
 app.use("/api/auth", authRoutes)
+app.use("/api/", projectRoutes)
 
 // app.post("/projects", async (req, res) => {
 //     const { gitURL } = req.body;
@@ -102,28 +104,28 @@ app.use("/api/auth", authRoutes)
 //     return res.json({ status: 'queued', data: { projectSlug, url: `http://${projectSlug}.localhost:8000` } });
 // })
 
-app.post("/projects", async (req, res) => {
-    try {
-        const { gitURL } = req.body;
-        const projectSlug = generateSlug();
-        console.log("Received gitURL:", gitURL);
-        const response = await axios.post(
-            process.env.AWS_API_GATEWAY_URL,
-            { gitURL, projectSlug }
-        );
-        console.log("hit the API", response.data);
-        return res.json({
-            status: 'queued',
-            data: {
-                projectSlug,
-                url: `http://${projectSlug}.localhost:8000`,
-            }
-        });
-    } catch (error) {
-        console.error("Error in /projects endpoint:", error);
-        return res.status(500).json({ status: 'error', message: 'Internal Server Error', error: error.message });
-    }
-});
+// app.post("/projects", async (req, res) => {
+//     try {
+//         const { gitURL } = req.body;
+//         const projectSlug = generateSlug();
+//         console.log("Received gitURL:", gitURL);
+//         const response = await axios.post(
+//             process.env.AWS_API_GATEWAY_URL,
+//             { gitURL, projectSlug }
+//         );
+//         console.log("hit the API", response.data);
+//         return res.json({
+//             status: 'queued',
+//             data: {
+//                 projectSlug,
+//                 url: `http://${projectSlug}.localhost:8000`,
+//             }
+//         });
+//     } catch (error) {
+//         console.error("Error in /projects endpoint:", error);
+//         return res.status(500).json({ status: 'error', message: 'Internal Server Error', error: error.message });
+//     }
+// });
 
 async function initRedisSubscribe() {
     console.log("Subscribed To Logs Channel");
