@@ -45,6 +45,47 @@ const signup = async (req, res) => {
     }
 }
 
+const resendVerificationCode = async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        if (user.isVerified) {
+            return res.status(400).json({ success: false, message: "Email is already verified" });
+        }
+
+        // Generate new code
+        const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+        user.verificationToken = newCode;
+        user.verificationTokenExpiresAt = Date.now() + 24 * 60 * 60 * 1000;
+
+        await user.save();
+
+        // Resend email
+        await sendmail(email, "Resend Verification Code", "verification.ejs", {
+            email: email,
+            verificationCode: newCode,
+            name: user.name
+        });
+
+        return res.status(200).json({ success: true, message: "Verification code resent successfully" });
+
+    } catch (error) {
+        console.error("Error during resend code:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
 const verifyEmail = async (req, res) => {
     console.log("hi")
     console.log(req.body)
@@ -202,5 +243,6 @@ module.exports = {
     logout,
     forgotPassword,
     resetPassword,
-    checkAuth
+    checkAuth,
+    resendVerificationCode
 };

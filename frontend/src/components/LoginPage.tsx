@@ -1,32 +1,26 @@
 import type React from "react";
 
 import { useState } from "react";
-import type { User } from "../App";
+import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
+import {  useNavigate } from "react-router-dom";
 
-interface LoginPageProps {
-	onLogin: (userData: User) => void;
-	onSwitchToRegister: () => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToRegister }) => {
+function LoginPage() {
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
 	});
-	const [isLoading, setIsLoading] = useState(false);
+	const { login, error, isLoading } = useAuth();
+	const navigate = useNavigate();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setIsLoading(true);
-
-		setTimeout(() => {
-			onLogin({
-				email: formData.email,
-				name: formData.email.split("@")[0],
-				avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.email}`,
-			});
-			setIsLoading(false);
-		}, 1000);
+		try {
+			await login(formData.email, formData.password);
+			toast.success("Logged in successfully");
+		} catch (error: any) {
+			toast.error(error.response?.data?.message || "Error logging in");
+		}
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +65,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToRegister }) =>
 					</button>
 
 					<div className="text-center">
-						<button type="button" onClick={onSwitchToRegister} className="text-blue-400 hover:text-blue-300 text-sm">
+						<button type="button" onClick={() => navigate("/signup")} className="text-blue-400 hover:text-blue-300 text-sm">
 							Don't have an account? Sign up
 						</button>
 					</div>
@@ -79,6 +73,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToRegister }) =>
 			</div>
 		</div>
 	);
-};
+}
 
 export default LoginPage;
