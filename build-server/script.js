@@ -48,7 +48,26 @@ async function init() {
         console.log(`Build Complete.`);
         publishLogs("Build Complete...");
         //read the dist floder after the build is complete
-        const distFolderPath = path.join(__dirname, "output", "dist");
+        // const distFolderPath = path.join(__dirname, "output", "dist");
+
+        //possiblity for react and vite
+        const possibleFolders = ["dist", "build"];
+        let distFolderPath = null;
+
+        for (const folder of possibleFolders) {
+            const possibleFolderPath = path.join(__dirname, "output", folder);
+            if (fs.existsSync(possibleFolderPath)) {
+                distFolderPath = possibleFolderPath;
+                break;
+            }
+        }
+
+        if (!distFolderPath) {
+            console.error("Neither 'dist' nor 'build' folder found!");
+            publishLog("Neither 'dist' nor 'build' folder found!");
+            process.exit(1);
+        }
+
         const distFolderContents = fs.readdirSync(distFolderPath, { recursive: true });
 
         publishLogs("Starting To Upload...");
@@ -68,14 +87,20 @@ async function init() {
                 Body: fs.createReadStream(filePath),
                 ContentType: mime.lookup(filePath),
             });
-            await s3.send(command);
-            console.log("uploaded file: ", file);
-            publishLogs(`uploaded file: ${file}`);
+            try {
+                await s3.send(command);
+                console.log("uploaded file: ", file);
+                publishLogs(`uploaded file: ${file}`);
+            } catch (err) {
+                console.error("Error uploading file:", err);
+                publishLog(`Error uploading file: ${err}`);
+                throw err;
+            }
         }
         console.log("Done....");
         publishLogs("Done...");
-
-        process.exit(0);
+        setTimeout(() => process.exit(0), 10000); //wait for 10 seconds
+        // process.exit(0);
     });
 
 }
